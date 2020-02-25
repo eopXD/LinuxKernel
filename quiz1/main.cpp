@@ -10,7 +10,6 @@ typedef struct __list {
 int func_call = 0;
 int iteration = 0;
 list *sort(list *start, int L, int R) {
-	//printf("L, R: %d %d\n", L, R);
     if ( R <= L+1 ) {
     	start->next = start->prev = start;
         return start;
@@ -27,13 +26,9 @@ list *sort(list *start, int L, int R) {
     left = sort(left, L, M);
     right = sort(right, M, R);
     
-    //printf("right: %d, next: %d, prev: %d\n", left->data, left->next->data, left->prev->data);
-    //printf("right: %d, next: %d, prev: %d\n", right->data, right->next->data, right->prev->data);
-    
     left->prev->next = right->prev->next = NULL;
     
     list *merge = NULL;
-    //printf("READY %d %d\n", L, R);
     
     for ( ; left || right; ) {
     	++iteration;
