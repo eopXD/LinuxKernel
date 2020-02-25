@@ -10,7 +10,9 @@ typedef struct __list {
 int func_call = 0;
 int iteration = 0;
 list *sort(list *start, int L, int R) {
+	//printf("L, R: %d %d\n", L, R);
     if ( R <= L+1 ) {
+    	start->next = start->prev = start;
         return start;
     }
     func_call++;
@@ -22,47 +24,44 @@ list *sort(list *start, int L, int R) {
         right = right->next;
     }
 
-    list *left_end = right->prev;
-    list *right_end = left->prev;
-
-    left->prev = left_end;
-    left_end->next = left;
-
-    right->prev = right_end;
-    right_end->next = right;
-
     left = sort(left, L, M);
     right = sort(right, M, R);
-    int cnt = 0, l_cnt = 0, r_cnt = 0;
+    
+    //printf("right: %d, next: %d, prev: %d\n", left->data, left->next->data, left->prev->data);
+    //printf("right: %d, next: %d, prev: %d\n", right->data, right->next->data, right->prev->data);
+    
+    left->prev->next = right->prev->next = NULL;
+    
     list *merge = NULL;
-    for (list *ll=left, *rr=right; cnt<R-L; ++cnt) {
-        ++iteration;
-        if ( r_cnt==R-M || (l_cnt!=M-L && ll->data < rr->data)) {
+    //printf("READY %d %d\n", L, R);
+    
+    for ( ; left || right; ) {
+    	++iteration;
+        if ( !right || (left && left->data < right->data)) {
             if (!merge) {
-                start = merge = ll; // LL1;
+                start = merge = left; // LL1;
             } else {
-                merge->next = ll; // LL2;
+                merge->next = left; // LL2;
                 merge->next->prev = merge;
                 merge = merge->next;
             }
-            ll = ll->next; // LL3;
-            ++l_cnt;
+            left = left->next; // LL3;
         } else {
             if (!merge) {
-                start = merge = rr; // LL4;
+                start = merge = right; // LL4;
             } else {
-                merge->next = rr; // LL5;
+                merge->next = right; // LL5;
                 merge->next->prev = merge;
                 merge = merge->next;
             }
-            rr = rr->next; // LL6;
-            ++r_cnt;
+            right = right->next; // LL6;
         }
     }
     merge->next = start;
     start->prev = merge;
     return start;
 }
+
 void display (list *start) {
     for ( list *now=start; ; now=now->next ) {
         printf("%d, prev: %d, next: %d\n", now->data, now->prev->data, 
@@ -73,6 +72,8 @@ void display (list *start) {
     } 
     printf("\n");
 }
+
+
 list *input ( int &n ) {
     scanf("%d", &n);
     int tmp = n;
