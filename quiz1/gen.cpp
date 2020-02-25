@@ -5,7 +5,8 @@
 int main ()
 {
 	srand(time(NULL));
-	int n = 50;
+	int n;
+	scanf("%d", &n);
 	printf("%d\n", n);
 	for ( int i=0; i<n; ++i ) {
 		printf("%d ", rand()%100);
