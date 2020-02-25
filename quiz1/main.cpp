@@ -25,7 +25,7 @@ list *sort(list *start) {
     	++iteration;    	
     	if (!right || (left && left->data < right->data)) {
     		if (!merge) {
-                merge = left; // LL1;
+                start = merge = left; // LL1;
             } else {
             	merge->next = left; // LL2;
                 merge = merge->next;
