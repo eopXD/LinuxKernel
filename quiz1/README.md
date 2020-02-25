@@ -32,3 +32,4 @@ TODO
 
 It would be easy to modify the code to iterative version. We are actually doing the `merge` action with increasing chunk size to the given linked-list. However, the constraint of linked-list is that the access time of a certain pointer (element) will take `O(n)` time. If we don't create an array to record the elements we will need `O(n^2 log n)` time. Creating array doubles the memory usage, although the space complexity remains the same, but when size of the list is larger than size of the main memory, there will occur several disk I/O since the list cannot be filled completely into the memory.
 
+Additionally, with the iterative version we will able do parallel merge sort, a constant improvement on the algorithm. However, if we our CPU have  infinite core, time complexity will be improved to `O(log n * log n)`.
