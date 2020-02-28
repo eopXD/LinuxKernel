@@ -6,6 +6,8 @@ OBJS = strnatcmp.o natsort.o
 
 natsort: $(OBJS)
 	$(CC) -o $@ $(OBJS)
+test:
+	$(CC) -o $@ test.c strnatcmp.c
 
 clean:
-	rm natsort $(OBJS)
+	rm -rf natsort test $(OBJS)
