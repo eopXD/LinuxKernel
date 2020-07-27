@@ -1,15 +1,10 @@
 #include <stdio.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "xstring.h"
+#include "Bstring.h"
 
 int main()
 {
-    XString str;
+    Bstring *str;
+    bs_empty(str);
 
     return 0;
 }

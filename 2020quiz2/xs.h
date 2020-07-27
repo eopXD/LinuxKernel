@@ -1,5 +1,8 @@
-#include <stdint.h>
+#include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 typedef union { /* the whole structure takes 16 byte */
     /* allow strings up to 15 bytes to stay on the stack
