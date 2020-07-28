@@ -1,17 +1,18 @@
+#include <stdio.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
-typedef union { /* the whole structure takes 16 byte */
+typedef union {
     /* allow strings up to 15 bytes to stay on the stack
      * use the last byte as a null terminator and to store flags
      * much like fbstring:
      * https://github.com/facebook/folly/blob/master/folly/docs/FBString.md
      */
     char data[16];
+
     struct {
         uint8_t filler[15],
             /* how many free bytes in this stack allocated string
@@ -19,13 +20,9 @@ typedef union { /* the whole structure takes 16 byte */
              */
             space_left : 4,
             /* if it is on heap, set to 1 */
-            is_ptr : 1, 
-            /* refer to someone */
-            refer : 1,
-            /* referred by someone */
-            referred: 1,
-            flag3 : 1;
+            is_ptr : 1, flag1 : 1, flag2 : 1, flag3 : 1;
     };
+
     /* heap allocated */
     struct {
         char *ptr;
@@ -56,22 +53,36 @@ static inline size_t xs_capacity(const xs *x)
 
 static inline int ilog2(uint32_t n) { return 32 - __builtin_clz(n) - 1; }
 
-void xs_new(xs *x, const void *p)
+xs *xs_new(xs *x, const void *p)
 {
+    puts("123");
+    *x = xs_literal_empty();
+    puts("XD");
     size_t len = strlen(p) + 1;
     if (len > 16) {
-        x->is_ptr = 1;
-        x->ptr = malloc((size_t) 1 << x->capacity);
-        memcpy(x->ptr, p, len);
         x->capacity = ilog2(len) + 1;
         x->size = len - 1;
+        x->is_ptr = true;
+        x->ptr = malloc((size_t) 1 << x->capacity);
+        memcpy(x->ptr, p, len);
     } else {
-        x->is_ptr = 0;     
+        printf("len: %zu\n", len);
         memcpy(x->data, p, len);
         x->space_left = 15 - (len - 1);
     }
-    x->refer = x->referred = 0;
+    return x;
 }
+
+/* Memory leaks happen if the string is too long but it is still useful for
+ * short strings.
+ * "" causes a compile-time error if x is not a string literal or too long.
+ */
+#define xs_tmp(x)                                          \
+    ((void) ((struct {                                     \
+         _Static_assert(sizeof(x) <= 16, "it is too big"); \
+         int dummy;                                        \
+     }){1}),                                               \
+     xs_new(&xs_literal_empty(), "" x))
 
 /* grow up to specified size */
 xs *xs_grow(xs *x, size_t len)
@@ -87,19 +98,22 @@ xs *xs_grow(xs *x, size_t len)
         x->ptr = malloc((size_t) 1 << len);
         memcpy(x->ptr, buf, 16);
     }
-    x->is_ptr = 1;
+    x->is_ptr = true;
     x->capacity = len;
     return x;
 }
 
-static inline void xs_newempty( xs *x ) {
-    x->is_ptr = x->refer = x->referred = 0;
+static inline xs *xs_newempty(xs *x)
+{
+    *x = xs_literal_empty();
+    return x;
 }
 
-static inline void xs_free(xs *x)
+static inline xs *xs_free(xs *x)
 {
-    if ( xs_is_ptr(x) )
-        free(x->ptr);
+    if (xs_is_ptr(x))
+        free(xs_data(x));
+    return xs_newempty(x);
 }
 
 xs *xs_concat(xs *string, const xs *prefix, const xs *suffix)
