@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 typedef union { /* the whole structure takes 16 byte */
     /* allow strings up to 15 bytes to stay on the stack
@@ -55,9 +56,9 @@ static inline size_t xs_capacity(const xs *x)
 
 static inline int ilog2(uint32_t n) { return 32 - __builtin_clz(n) - 1; }
 
-xs *xs_new(xs *x, const void *p)
+xs *xs_new(const void *p)
 {
-    *x = xs_literal_empty();
+    xs *x = (xs *) malloc(sizeof(xs));
     size_t len = strlen(p) + 1;
     if (len > 16) {
         x->capacity = ilog2(len) + 1;
@@ -67,6 +68,7 @@ xs *xs_new(xs *x, const void *p)
         memcpy(x->ptr, p, len);
     } else {
         memcpy(x->data, p, len);
+        x->is_ptr = false;
         x->space_left = 15 - (len - 1);
     }
     return x;
@@ -102,17 +104,20 @@ xs *xs_grow(xs *x, size_t len)
     return x;
 }
 
-static inline xs *xs_newempty(xs *x)
+static inline xs *xs_newempty()
 {
-    *x = xs_literal_empty();
+    xs *x = (xs *) malloc(sizeof(xs));
+    x->is_ptr = false;
     return x;
 }
 
-static inline xs *xs_free(xs *x)
+static inline void xs_free(xs *x)
 {
+    if ( !x ) 
+        return ;
     if (xs_is_ptr(x))
         free(xs_data(x));
-    return xs_newempty(x);
+    free(x);
 }
 
 xs *xs_concat(xs *string, const xs *prefix, const xs *suffix)

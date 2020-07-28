@@ -1,21 +1,18 @@
 #include "xs.h"
 
-/* reference counter */
 typedef struct refcounter {
     int ref_size, ref_capacity;
-    /* array to references */
     xs **ref_ar;
 } RefCounter;
 
 void ref_init ( RefCounter *ref ) { 
-	ref->ref_size = ref->ref_capacity;
-	ref->ref_ar = 0; 
+	ref->ref_size = ref->ref_capacity = 0;
+	ref->ref_ar = 0;
 }
 void ref_free ( RefCounter *ref ) {
 	if ( ref->ref_ar ) {
 		free(ref->ref_ar);
-	}
-	ref_init(ref);
+	}	
 }
 
 /* Better string */
@@ -25,21 +22,21 @@ typedef struct Bstring {
 } Bstring;
 
 
-/* declaration */
-Bstring *bs_new ( Bstring *bs, const void *p ) {
-	bs = (Bstring *) malloc(sizeof(Bstring));
-	xs_new(bs->x, p);
-	ref_free(&bs->refCount);
+/* allocate/free */
+Bstring *bs_empty () {
+	Bstring *bs = (Bstring *) malloc(sizeof(Bstring));
+	bs->x = xs_newempty();
+	ref_init(&bs->refCount);
 	return bs;
 }
-Bstring *bs_empty ( Bstring *bs ) {
-	bs = (Bstring *) malloc(sizeof(Bstring));
-	xs_newempty(bs->x);
-	ref_free(&bs->refCount);
+Bstring *bs_new ( const void *p ) {
+	Bstring *bs = (Bstring *) malloc(sizeof(Bstring));
+	bs->x = xs_new(p);
+	ref_init(&bs->refCount);
 	return bs;
 }
 Bstring *bs_free ( Bstring *bs ) {
-	bs->x = xs_free(bs->x);
+	xs_free(bs->x);
 	ref_free(&bs->refCount);
 	return bs;
 }
