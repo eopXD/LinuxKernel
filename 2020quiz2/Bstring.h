@@ -1,24 +1,10 @@
 #include "xs.h"
 
-typedef struct refcounter {
-    int ref_size, ref_capacity;
-    xs **ref_ar;
-} RefCounter;
-
-void ref_init ( RefCounter *ref ) { 
-	ref->ref_size = ref->ref_capacity = 0;
-	ref->ref_ar = 0;
-}
-void ref_free ( RefCounter *ref ) {
-	if ( ref->ref_ar ) {
-		free(ref->ref_ar);
-	}
-}
-
 /* Better string */
 typedef struct Bstring {
     xs x;
-    RefCounter refCount;
+    size_t ref_size: 54, ref_capacity: 6;
+    struct Bstring **ref_ar;
 } Bstring;
 
 /* utility */
@@ -28,40 +14,34 @@ static inline bool bs_is_ptr ( const Bstring *bs ) {
 static inline char *bs_data ( Bstring *bs ) {
 	return xs_data(&bs->x);
 }
-
+static inline void bs_ref_init ( Bstring *bs ) {
+	bs->ref_size = 0;
+	bs->ref_capacity = 0;
+	bs->ref_ar = 0;
+}
 /* allocate/free */
 void bs_newempty ( Bstring *bs ) {
 	xs_newempty(&bs->x);
-	ref_init(&bs->refCount);
+	bs_ref_init(bs);
 }
 void bs_new ( Bstring *bs, const void *p ) {
 	xs_new(&bs->x,p);
-	ref_init(&bs->refCount);
+	bs_ref_init(bs);
 }
 
 void bs_free ( Bstring *bs ) {
-	ref_free(&bs->refCount);
 	xs_free(&bs->x);
+	if ( bs->ref_ar )
+		free(bs->ref_ar);
 }
-
 
 /* basic function */
 // usage: dest is a pointer, not allocated yet
 //void bs_copy ( Bstring *src, Bstring *dest );
 void bs_copy ( Bstring *src, Bstring *dest ) {
 /* shallow copy by default */
-	/*
-	dest = (Bstring *) malloc(sizeof(Bstring));
-	dest->x = *xs_newempty();
-	if ( bs_is_ptr(src) ) {
-		dest->x.ptr = src->x.ptr;
-		dest->x.capacity = src->x.capacity;
-		dest->x.size = src->x.size;
-		src->x.referred = dest->x.refer = true;
-	} else {
 
-	}
-	*/
+	
 }
 
 
