@@ -21,10 +21,10 @@ typedef union {
             space_left : 4,
             /* if it is on heap, set to 1 */
             is_ptr : 1, 
-            /* if not source, set to 1 */
+            /* if refer to other, set to 1 */
             is_refer : 1, 
             /* if is source, set to 1 */
-            is_src : 1, 
+            flag2 : 1,
             flag3 : 1;
     };
 
@@ -39,7 +39,6 @@ typedef union {
     };
 } xs;
 static inline bool xs_is_refer(const xs *x) { return x->is_refer; }
-static inline bool xs_is_src(const xs *x) { return x->is_src; }
 static inline bool xs_is_ptr(const xs *x) { return x->is_ptr; }
 static inline size_t xs_size(const xs *x)
 {
@@ -62,7 +61,7 @@ static inline int ilog2(uint32_t n) { return 32 - __builtin_clz(n) - 1; }
 xs *xs_new(xs *x, const void *p)
 {
     *x = xs_literal_empty();
-    x->is_refer = x->is_src = false;
+    x->is_refer = false;
     size_t len = strlen(p) + 1;
     if (len > 16) {
         x->is_ptr = true;
@@ -100,13 +99,13 @@ xs *xs_grow(xs *x, size_t len)
 static inline xs *xs_newempty(xs *x)
 {
     *x = xs_literal_empty();
-    x->is_ptr = x->is_refer = x->is_src = false;
+    x->is_ptr = x->is_refer = false;
     return x;
 }
 
 static inline xs *xs_free(xs *x)
 {
-    if ( !xs_is_refer(x) && xs_is_ptr(x) )
+    if ( xs_is_ptr(x) )
         free(xs_data(x));
     return xs_newempty(x);
 }
