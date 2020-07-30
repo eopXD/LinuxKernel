@@ -78,10 +78,10 @@ xs *xs_new(xs *x, const void *p)
 }
 
 /* grow up to specified size */
-xs *xs_grow(xs *x, size_t len)
+char* xs_grow(xs *x, size_t len)
 {
     if (len <= xs_capacity(x))
-        return x;
+        return x->ptr;
     len = ilog2(len) + 1;
     if (xs_is_ptr(x))
         x->ptr = realloc(x->ptr, (size_t) 1 << len);
@@ -93,7 +93,7 @@ xs *xs_grow(xs *x, size_t len)
     }
     x->is_ptr = true;
     x->capacity = len;
-    return x;
+    return x->ptr;
 }
 
 static inline xs *xs_newempty(xs *x)
@@ -105,7 +105,9 @@ static inline xs *xs_newempty(xs *x)
 
 static inline xs *xs_free(xs *x)
 {
-    if ( xs_is_ptr(x) )
+    if ( xs_is_ptr(x) ) {
+        printf("data freed: [%s]\n", xs_data(x));
         free(xs_data(x));
+    }
     return xs_newempty(x);
 }

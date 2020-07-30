@@ -80,6 +80,7 @@ Bstring* bs_copy ( Bstring *dest, Bstring *src ) {
 		dest->x.is_refer = true;
 		dest->x.ptr = src->x.ptr;
 		dest->x.size = bs_size(src);
+		dest->x.capacity = src->x.capacity;
 		ref_add1(src);
 		dest->ref_count = src->ref_count;
 	} else {
@@ -99,7 +100,7 @@ Bstring* bs_concat ( Bstring *bs, Bstring *prefix, Bstring *suffix ) {
 	char *data = orig;
 
 	if ( origs + pres + sufs <= capacity ) {
-		if ( bs_is_ptr(bs) && bs_is_refer(bs) ) {
+		if ( bs_is_ptr(bs) ) {
 			if ( bs_is_refer(bs) ) {
 				ref_minus1(bs);
 				data = bs->x.ptr = (char *) malloc(sizeof(char) * capacity);				
@@ -110,21 +111,23 @@ Bstring* bs_concat ( Bstring *bs, Bstring *prefix, Bstring *suffix ) {
 		}
 		memmove(data + pres, orig, origs);		
 		memmove(data, pre, pres);
-		memmove(data + pres + origs, suf, sufs+1); // +1 for '\0'
+		memmove(data + pres + origs, suf, sufs+1);
 	} else {
-		xs tmp = xs_literal_empty();
-		xs_grow(&tmp, pres + origs + sufs);
-		tmp.size = pres + origs + sufs;
 		
-		data = xs_data(&tmp);
+		xs tmp = xs_literal_empty();
+		data = xs_grow(&tmp, pres + origs + sufs);
+		
 		memmove(data + pres, orig, origs);
 		memmove(data, pre, pres);
-		memmove(data + pres + origs, suf, sufs+1); // +1 for '\0'
-
-		bs_free(bs);
-		bs->x = tmp; // by value
+		memmove(data + pres + origs, suf, sufs+1);
+		
+		if ( bs_is_refer(bs) ) {
+			bs_free(bs);
+		} 
+		bs->x = tmp;
+		bs->x.size = pres + origs + sufs;
+		ref_init(bs);
 	}
-	ref_init(bs);
 	bs->x.is_refer = false;
 	return bs;
 }
