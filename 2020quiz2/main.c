@@ -2,42 +2,61 @@
 
 #include "Bstring.h"
 
+
+void bs_print ( Bstring *bs ) {
+    if ( bs_is_ptr(bs) ) {
+        printf("heap - is_refer: %d, size: %zu, capacity: %zu\n",
+            bs_is_refer(bs), bs_size(bs), bs_capacity(bs));
+    } else {
+        printf("stack - size: %zu, capacity: %zu\n",
+            bs_size(bs), bs_capacity(bs));
+    }
+    printf("[%s]\n", bs_data(bs));
+}
 int main()
 {
-    Bstring none;
-    bs_new(&none, "");
-    printf("%d, %d, %s\n", bs_is_ptr(&none), bs_is_refer(&none), bs_data(&none));
+    Bstring prefix, suffix;
     
-    Bstring short_str;
-    bs_new(&short_str, "short string");
-    printf("%d, %d, %s\n", bs_is_ptr(&short_str), bs_is_refer(&short_str), bs_data(&short_str));
-    
-    Bstring long_str;
-    bs_new(&long_str, "a long enough string");
-    printf("%d, %d, %s, %zu\n", bs_is_ptr(&long_str), bs_is_refer(&long_str), bs_data(&long_str), bs_ref_count(&long_str));
-    
-    Bstring copy_short;
-    bs_copy(&copy_short, &short_str);
-    printf("%d, %d, %s\n", bs_is_ptr(&copy_short), bs_is_refer(&copy_short), bs_data(&copy_short));
-    
-    Bstring copy_long;
-    bs_copy(&copy_long, &long_str);
-    printf("%d, %d, %s, %zu\n", bs_is_ptr(&copy_long), bs_is_refer(&copy_long), bs_data(&copy_long), bs_ref_count(&copy_long));
-    bs_free(&long_str);
-    printf("%d, %d, %s, %zu\n", bs_is_ptr(&copy_long), bs_is_refer(&copy_long), bs_data(&copy_long), bs_ref_count(&copy_long));
+    bs_new(&prefix, "prefix");
+    bs_new(&suffix, "suffix");
 
-    Bstring copy_copy;
-    bs_copy(&copy_copy, &copy_long);
-    //bs_free(&copy_long);
-    printf("%d, %d, %s, %zu\n", bs_is_ptr(&copy_copy), bs_is_refer(&copy_copy), bs_data(&copy_copy), bs_ref_count(&copy_copy));
-    
-    bs_free(&copy_copy);
-    
-    printf("%d, %d, %s, %zu\n", bs_is_ptr(&copy_long), bs_is_refer(&copy_long), bs_data(&copy_long), bs_ref_count(&copy_long));
-    bs_free(&copy_long);
+    Bstring stk;
+    bs_new(&stk, "stk");
+    bs_print(&stk);
+    bs_concat(&stk, &prefix, &suffix);
+    bs_print(&stk);
 
-    bs_free(&none);
-    bs_free(&short_str);
-    bs_free(&copy_short);
+    Bstring hp;
+    bs_new(&hp, "to heap");
+    bs_print(&hp);
+    bs_concat(&hp, &prefix, &suffix);
+    bs_print(&hp);
+    
+
+    Bstring origin_cap;
+    bs_new(&origin_cap, "This a long string");
+    Bstring expand_cap;
+    bs_new(&expand_cap, "We need to expand capacity");
+    
+
+    bs_print(&origin_cap);
+    bs_concat(&origin_cap, &prefix, &suffix);
+    bs_print(&origin_cap);
+    
+    Bstring copy;
+    bs_copy(&copy, &expand_cap);
+
+    bs_print(&copy);
+    bs_concat(&copy, &prefix, &suffix);
+    bs_print(&copy);
+
+    bs_print(&expand_cap);
+    bs_concat(&expand_cap, &prefix, &suffix);
+    bs_print(&expand_cap);
+
+
+    bs_free(&origin_cap);
+    bs_free(&expand_cap);
+
     return 0;
 }
