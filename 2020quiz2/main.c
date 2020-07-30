@@ -15,48 +15,24 @@ void bs_print ( Bstring *bs ) {
 }
 int main()
 {
-    Bstring prefix, suffix;
-    
-    bs_new(&prefix, "prefix");
-    bs_new(&suffix, "suffix");
+    Bstring data;
+    bs_new(&data, "(((_(((data)))_)))");
 
-    Bstring stk;
-    bs_new(&stk, "stk");
-    bs_print(&stk);
-    bs_concat(&stk, &prefix, &suffix);
-    bs_print(&stk);
-
-    Bstring hp;
-    bs_new(&hp, "to heap");
-    bs_print(&hp);
-    bs_concat(&hp, &prefix, &suffix);
-    bs_print(&hp);
-    
-
-    Bstring origin_cap;
-    bs_new(&origin_cap, "This a long string");
-    Bstring expand_cap;
-    bs_new(&expand_cap, "We need to expand capacity");
-    
-
-    bs_print(&origin_cap);
-    bs_concat(&origin_cap, &prefix, &suffix);
-    bs_print(&origin_cap);
-    
     Bstring copy;
-    bs_copy(&copy, &expand_cap);
+    bs_copy(&copy, &data);
+    
+    bs_print(&copy);
+    bs_trim(&copy, "()");
+    bs_print(&copy);
+    
+    bs_print(&data);
+    bs_trim(&data, "()");
+    bs_print(&data);
 
     bs_print(&copy);
-    bs_concat(&copy, &prefix, &suffix);
+    bs_trim(&copy, "()");
     bs_print(&copy);
-
-    bs_print(&expand_cap);
-    bs_concat(&expand_cap, &prefix, &suffix);
-    bs_print(&expand_cap);
-
-
-    bs_free(&origin_cap);
-    bs_free(&expand_cap);
+    bs_free(&copy);
 
     return 0;
 }

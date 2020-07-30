@@ -181,9 +181,7 @@ Bstring* bs_trim ( Bstring *bs, const char *trimset ) {
     return bs;
 }
 
-/* modify value in pos to c */
+/*  more feature */
+//void bs_strtok_r ( Bstring *bs, const char *delim, Bstring **save_ptr );
 //void bs_modify_char ( Bstring *bs, int pos, char c );
 
-/* advance */
-//void bs_strtok ();
-//void bs_strtok_r ();
