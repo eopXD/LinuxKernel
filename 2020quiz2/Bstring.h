@@ -69,12 +69,15 @@ void bs_free ( Bstring *bs ) {
 			free(bs->ref_count);
 			return ;
 		}
-		*(bs->ref_count) -= 1;
+		ref_minus1(bs);
 	}
 }
 
 /* basic function */
 Bstring* bs_copy ( Bstring *dest, Bstring *src ) {
+	if ( dest == 0 || src == 0 ) {
+		return 0;
+	}
 	if ( bs_is_ptr(src) ) {
 		dest->x.is_ptr = true;
 		dest->x.is_refer = true;
@@ -92,6 +95,9 @@ Bstring* bs_copy ( Bstring *dest, Bstring *src ) {
 }
 
 Bstring* bs_concat ( Bstring *bs, Bstring *prefix, Bstring *suffix ) {
+	if ( bs == 0 || prefix == 0 || suffix == 0 ) {
+		return 0;
+	}
 	size_t pres = bs_size(prefix), sufs = bs_size(suffix);
 	size_t origs = bs_size(bs), capacity = bs_capacity(bs);
 
@@ -101,9 +107,10 @@ Bstring* bs_concat ( Bstring *bs, Bstring *prefix, Bstring *suffix ) {
 
 	if ( origs + pres + sufs <= capacity ) {
 		if ( bs_is_ptr(bs) ) {
-			if ( bs_is_refer(bs) ) {
+			if ( bs_ref_count(bs) ) {
 				ref_minus1(bs);
 				data = bs->x.ptr = (char *) malloc(sizeof(char) * capacity);				
+				ref_init(bs);
 			}
 			bs->x.size = pres + origs + sufs;
 		} else {
@@ -114,24 +121,65 @@ Bstring* bs_concat ( Bstring *bs, Bstring *prefix, Bstring *suffix ) {
 		memmove(data + pres + origs, suf, sufs+1);
 	} else {
 		
-		xs tmp = xs_literal_empty();
-		data = xs_grow(&tmp, pres + origs + sufs);
-		
-		memmove(data + pres, orig, origs);
-		memmove(data, pre, pres);
-		memmove(data + pres + origs, suf, sufs+1);
-		
-		if ( bs_is_refer(bs) ) {
-			bs_free(bs);
-		} 
-		bs->x = tmp;
+		if ( bs_ref_count(bs) ) {
+			xs tmp = xs_literal_empty();
+			data = xs_grow(&tmp, pres + origs + sufs);
+			memmove(data + pres, orig, origs);
+			memmove(data, pre, pres);
+			memmove(data + pres + origs, suf, sufs+1);
+			bs->x = tmp;
+			bs_free(bs); 
+		} else {
+			orig = data = xs_grow(&bs->x, pres + origs + sufs);
+			memmove(data + pres, orig, origs);
+			memmove(data, pre, pres);
+			memmove(data + pres + origs, suf, sufs+1);
+		}
 		bs->x.size = pres + origs + sufs;
 		ref_init(bs);
 	}
 	bs->x.is_refer = false;
 	return bs;
 }
-//void bs_trim ( Bstring *bs, const char *trimset );
+Bstring* bs_trim ( Bstring *bs, const char *trimset ) {
+	if ( !trimset[0] ) {
+		return bs;
+	}
+	char *orig = bs_data(bs), *data = orig;
+	/* similar to strspn/strpbrk but it operates on binary data */
+    uint8_t mask[32] = {0};
+
+#define check_bit(byte) (mask[(uint8_t) byte / 8] & 1 << (uint8_t) byte % 8)
+#define set_bit(byte) (mask[(uint8_t) byte / 8] |= 1 << (uint8_t) byte % 8)
+
+    size_t i, slen = bs_size(bs), trimlen = strlen(trimset);
+    size_t capacity = bs_capacity(bs);
+    for (i = 0; i < trimlen; i++)
+        set_bit(trimset[i]);
+    for (i = 0; i < slen; i++)
+        if (!check_bit(orig[i]))
+            break;
+    for (; slen > 0; slen--)
+        if (!check_bit(orig[slen - 1]))
+            break;
+    orig += i;
+    slen -= i;
+    if ( bs_ref_count(bs) ) {
+    	ref_minus1(bs);
+		data = bs->x.ptr = (char *) malloc(sizeof(char) * capacity);
+		ref_init(bs);	
+    }
+    memmove(data, orig, slen);
+    data[slen] = 0;
+    if ( bs_is_ptr(bs) ) {
+    	bs->x.size = slen;
+    } else {
+    	bs->x.space_left = 15 - slen;
+    }
+#undef check_bit
+#undef set_bit
+    return bs;
+}
 
 /* modify value in pos to c */
 //void bs_modify_char ( Bstring *bs, int pos, char c );
