@@ -1,2 +1,2 @@
 all:
-	gcc -std=gnu11 main.c -o exec
+	gcc -std=gnu11 main.c -o exec.main
