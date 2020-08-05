@@ -1,9 +1,14 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
 #include "xorlist.h"
 
+int func_call = 0;
+int iteration = 0;
 list *sort(list *start)
 {
+    func_call++;
     if (!start || !start->addr)
         return start;
 
@@ -15,6 +20,7 @@ list *sort(list *start)
     right = sort(right);
 
     for (list *merge = NULL; left || right;) {
+        iteration++;
         if (!right || (left && left->data < right->data)) {
             list *next = left->addr;
             if (next)
@@ -52,19 +58,18 @@ int main ()
 {
 
 	list *head = NULL;
-	insert_head(&head, 1);
-	insert_head(&head, 1);
-	insert_head(&head, 2);
-	insert_head(&head, 3);
-	insert_head(&head, 5);
-	insert_head(&head, 8);
-	insert_head(&head, 13);
-	
-	print_list(head);
-	
-	head = sort(head);
+    int n = 10000;
+    srand(time(NULL));
+    int ar[n];
+    for ( int i=0; i<n; ++i )  {
+        insert_head(&head, rand());
 
-	print_list(head);
+    }
+	//print_list(head);
+    head = sort(head);
+    printf("func_call: %d\n", func_call);
+    printf("iteration: %d\n", iteration);
+	//print_list(head);
 
 	return 0;
 }
