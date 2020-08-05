@@ -1,23 +1,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <assert.h>
 
 #include "xorlist.h"
 
 int func_call = 0;
 int iteration = 0;
-list *sort(list *start)
+list *sort ( list *start, int L, int R )
 {
     func_call++;
-    if (!start || !start->addr)
+    if ( R <= L+1 )
         return start;
+    int M = (L + R) / 2;
+    list *left = start, *right, *left_end;
 
-    list *left = start, *right = start->addr;
-    left->addr = NULL;
-    right->addr = XOR(right->addr, left);
+    left_end = travel(left, M - L - 1);
+    right = travel(left, M - L);
 
-    left = sort(left);
-    right = sort(right);
+    left_end->addr = XOR(left_end->addr, right);
+    right->addr = XOR(right->addr, left_end);
+
+    left = sort(left, L, M);
+    right = sort(right, M, R);
 
     for (list *merge = NULL; left || right;) {
         iteration++;
@@ -54,22 +59,33 @@ list *sort(list *start)
 
     return start;
 }
+void certify ( list *start ) {
+    list *now = start, *prev = NULL, *next;
+    while ( now ) {
+        if ( prev ) {
+            assert(prev->data <= now->data);
+        }
+        next = XOR(now->addr, prev);
+        prev = now;
+        now = next;
+    }
+    puts("certified!!!");
+}
 int main ()
 {
 
 	list *head = NULL;
     int n = 10000;
     srand(time(NULL));
-    int ar[n];
     for ( int i=0; i<n; ++i )  {
         insert_head(&head, rand());
-
     }
-	//print_list(head);
-    head = sort(head);
+    
+    head = sort(head, 0, n);
+    
+    certify(head);
     printf("func_call: %d\n", func_call);
     printf("iteration: %d\n", iteration);
-	//print_list(head);
-
+	
 	return 0;
 }

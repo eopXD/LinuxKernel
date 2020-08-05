@@ -46,3 +46,14 @@ void print_list ( list *l ) {
     }
     puts("");
 }
+// return the x-th element with *l as the head, 0-th = *l
+list* travel ( list *l, int x ) {
+    list *now = l, *prev = NULL, *next;
+    while ( x > 0 && now  ) {
+        next = XOR(prev, now->addr);
+        prev = now;
+        now = next;
+        x--;
+    }
+    return now;
+}
