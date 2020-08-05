@@ -15,8 +15,8 @@ list *sort ( list *start, int L, int R )
     int M = (L + R) / 2;
     list *left = start, *right, *left_end;
 
-    left_end = travel(left, M - L - 1);
-    right = travel(left, M - L);
+    left_end = travel(left, NULL, M - L - 1);
+    right = travel(left, NULL, M - L);
 
     left_end->addr = XOR(left_end->addr, right);
     right->addr = XOR(right->addr, left_end);

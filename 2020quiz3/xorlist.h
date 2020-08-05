@@ -47,8 +47,8 @@ void print_list ( list *l ) {
     puts("");
 }
 // return the x-th element with *l as the head, 0-th = *l
-list* travel ( list *l, int x ) {
-    list *now = l, *prev = NULL, *next;
+list* travel ( list *now, list *prev, int x ) {
+    list *next;
     while ( x > 0 && now  ) {
         next = XOR(prev, now->addr);
         prev = now;
