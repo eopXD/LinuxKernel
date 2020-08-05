@@ -9,22 +9,7 @@ struct __list {
     struct __list *addr; // link = addr_self XOR addr_next
 };
 
-
-/*
-
-
-NULL A NULL
-
-insert B, given ADDR_A, so we also have ADDR_B
-ADDR_B = ADDR_A
-ADDR_A = ADDR_B XOR ADDR_A 
-
-
-*/
-
 #define XOR(a, b) ((list *) ((uintptr_t) (a) ^ (uintptr_t) (b)))
-
-#define prev(a) ((list *) ((uintptr_t) ))
 
 void insert_head(list **l, int d) { // insert to head
     list *tmp = malloc(sizeof(list));
