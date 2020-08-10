@@ -102,12 +102,19 @@ list* insertion_sort ( list *start, int len ) {
     return start;
 }
 
+#define MAX_S 4096+1
+
+extern int func_call;
+extern int iteration;
+int S = 1;
+int ar[MAX_S];
+
 list* merge_sort ( list *start, int L, int R )
 {    
     func_call++;
     if ( R - L <=  S ) {
-        start = insertion_sort(start, R - L);
-        //start = bubble_sort(start, R - L);
+        //start = insertion_sort(start, R - L);
+        start = bubble_sort(start, R - L);
         return start;
     }
     int M = (L + R) / 2;
