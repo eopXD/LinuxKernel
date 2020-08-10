@@ -9,69 +9,51 @@
 int func_call = 0;
 int iteration = 0;
 
-int S = 1;
+int S = 10;
 int ar[MAX_S];
-void swap ( int *a, int *b) {
-    *a ^= *b;
-    *b ^= *a;
-    *a ^= *b;
-}
+
 void swap ( list *a, list *b ) {
-    list *pre_a, *pre_b;
-    pre_a = XOR(a->addr, b);
-    pre_b = XOR(b->addr, a);
-    if ( pre_a != NULL ) {
-        pre_a->addr = XOR(pre_a->addr, XOR(a, b));
-    }
-    if ( pre_b != NULL ) {
-        pre_b->addr = XOR(pre_b->addr, XOR(a, b));
-    }
-    a->addr = XOR(b, pre_b);
-    b->addr = XOR(a, pre_a);
+    int tmp = a->data;
+    a->data = b->data;
+    b->data = tmp;
 }
-void get_data ( list *start, int len ) {
-    list *now = start;
-    list *prev = NULL, *next;
-    for ( int i=0; i<len; ++i ) {
-        ar[i] = now->data;
-        next = XOR(now->addr, prev);
-        prev = now;
-        now = next;
-    }
-}
-void overwrite_data ( list *start, int len ) {
-    list *now = start;
-    list *prev = NULL, *next;
-    for ( int i=0; i<len; ++i ) {
-        now->data = ar[i];
-        next = XOR(now->addr, prev);
-        prev = now;
-        now = next;
-    }    
-}
-
 list* bubble_sort ( list *start, int len ) {
-    get_data(start, len);
+    list *now, *prev = NULL, *next;
+    list *inner_now, *inner_prev, *inner_next;
+    now = start;
     for ( int i=0; i<len; ++i ) {
-        for ( int j=i+1; j<len; ++j ) {
-
-            if ( ar[i] > ar[j] ) 
-                swap(&ar[i], &ar[j]);
+        inner_now = now;
+        inner_prev = prev;
+        for ( int j=0; j<len-i-1; ++j ) {
+            inner_next = XOR(inner_now->addr, inner_prev);
+            if ( inner_now->data > inner_next->data ) {
+                swap(inner_now, inner_next);
+            }
+            inner_prev = inner_now;
+            inner_now = inner_next;
         }
     }
-    overwrite_data(start, len);
     return start;
 }
 list* insertion_sort ( list *start, int len ) {
-    get_data(start, len);
+    list *now, *prev = NULL, *next;
+    list *inner_now, *inner_prev = NULL, *inner_next;
+    now = start;
     for ( int i=1; i<len; ++i ) {
+        next = XOR(now->addr, prev);
+        inner_now = now;
+        inner_prev = next;
         int j = i - 1;
-        while ( j >= 0 && ar[j+1] < ar[j] ) {
-            swap(&ar[j], &ar[j+1]);
+        while ( j >= 0 && inner_prev->data < inner_now->data ) {
+            swap(inner_now, inner_prev);
+            inner_next = XOR(inner_now->addr, inner_prev);
+            inner_prev = inner_now;
+            inner_now = inner_next;
             j--;
         }
+        prev = now;
+        now = next;
     }
-    overwrite_data(start, len);
     return start;
 }
 
@@ -79,8 +61,8 @@ list* merge_sort ( list *start, int L, int R )
 {    
     func_call++;
     if ( R - L <=  S ) {
-        //bubble_sort(start, R - L);
-        insertion_sort(start, R - L);
+        //start = insertion_sort(start, R - L);
+        start = bubble_sort(start, R - L);
         return start;
     }
     int M = (L + R) / 2;
@@ -144,10 +126,17 @@ void certify ( list *start ) {
 }
 int main ()
 {
+    list *head = NULL;
+    int n = 50;
+    for ( int i=0; i<n; ++i ) {
+        insert_head(&head, rand()%100);
+    }
+    head = merge_sort(head, 0, n);
+    certify(head);
+    delete_list(head);
+    return (0);
 
-	list *head = NULL;
-    int n = 1000000;
-    int *origin = malloc(sizeof(int) * n);
+	int *origin = malloc(sizeof(int) * n);
     srand(time(NULL));
     for ( int i=0; i<n; ++i )  {
         origin[i] = rand();
