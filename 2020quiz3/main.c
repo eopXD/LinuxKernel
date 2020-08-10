@@ -5,11 +5,11 @@
 
 #include "xorlist.h"
 
-#define MAX_S 4096
+#define MAX_S 4096+1
 int func_call = 0;
 int iteration = 0;
 
-int S = 10;
+int S = 1;
 int ar[MAX_S];
 
 void swap ( list *a, list *b ) {
@@ -61,8 +61,8 @@ list* merge_sort ( list *start, int L, int R )
 {    
     func_call++;
     if ( R - L <=  S ) {
-        //start = insertion_sort(start, R - L);
-        start = bubble_sort(start, R - L);
+        start = insertion_sort(start, R - L);
+        //start = bubble_sort(start, R - L);
         return start;
     }
     int M = (L + R) / 2;
@@ -127,21 +127,13 @@ void certify ( list *start ) {
 int main ()
 {
     list *head = NULL;
-    int n = 50;
-    for ( int i=0; i<n; ++i ) {
-        insert_head(&head, rand()%100);
-    }
-    head = merge_sort(head, 0, n);
-    certify(head);
-    delete_list(head);
-    return (0);
-
-	int *origin = malloc(sizeof(int) * n);
+    int n = 10000000;
+    int *origin = malloc(sizeof(int) * n);
     srand(time(NULL));
     for ( int i=0; i<n; ++i )  {
         origin[i] = rand();
     }
-    for ( ; S < MAX_S; ++S ) {
+    for ( ; S < MAX_S; S*=2 ) {
         func_call = 0;
         iteration = 0;    
         list *head = NULL;
